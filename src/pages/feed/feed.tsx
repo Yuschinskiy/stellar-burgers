@@ -1,15 +1,30 @@
+import { FC, useEffect } from 'react';
 import { Preloader } from '@ui';
 import { FeedUI } from '@ui-pages';
-import { TOrder } from '@utils-types';
-import { FC } from 'react';
+import { useAppDispatch, useAppSelector } from '../../services/hooks';
+import { fetchFeeds } from '../../services/slices/feedSlice';
 
 export const Feed: FC = () => {
-  /** TODO: взять переменную из стора */
-  const orders: TOrder[] = [];
+  const dispatch = useAppDispatch();
+  const { orders, isLoading } = useAppSelector((s) => s.feed);
 
-  if (!orders.length) {
+  console.log('Feed component:', { ordersCount: orders.length, isLoading });
+
+  useEffect(() => {
+    console.log('Feed: fetching feeds...');
+    dispatch(fetchFeeds());
+  }, [dispatch]);
+
+  // Если загружается и нет заказов, показываем прелоадер
+  if (isLoading && orders.length === 0) {
     return <Preloader />;
   }
 
-  <FeedUI orders={orders} handleGetFeeds={() => {}} />;
+  const handleGetFeeds = () => {
+    console.log('Refreshing feeds...');
+    dispatch(fetchFeeds());
+  };
+
+  // УБЕДИТЕСЬ ЧТО ЕСТЬ return!
+  return <FeedUI orders={orders} handleGetFeeds={handleGetFeeds} />;
 };
