@@ -1,17 +1,34 @@
 import { useState, useRef, useEffect, FC } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useInView } from 'react-intersection-observer';
-import { useAppSelector } from '../../services/hooks';
+import { useAppDispatch, useAppSelector } from '../../services/hooks';
 import { TTabMode, TIngredient } from '@utils-types';
 import { BurgerIngredientsUI } from '../ui/burger-ingredients';
+import {
+  addBun,
+  addIngredient
+} from '../../services/slices/burgerConstructorSlice';
+import { v4 as uuidv4 } from 'uuid';
 
 export const BurgerIngredients: FC = () => {
-  // Берем данные из store
+  const dispatch = useAppDispatch();
+  const location = useLocation();
   const { items } = useAppSelector((s) => s.ingredients);
+  const { bun, ingredients } = useAppSelector((s) => s.burgerConstructor);
 
   // Фильтруем ингредиенты по типам
   const buns = items.filter((item: TIngredient) => item.type === 'bun');
   const mains = items.filter((item: TIngredient) => item.type === 'main');
   const sauces = items.filter((item: TIngredient) => item.type === 'sauce');
+
+  // Считаем количество каждого ингредиента в конструкторе
+  const getIngredientCount = (ingredient: TIngredient) => {
+    if (ingredient.type === 'bun') {
+      return bun && bun._id === ingredient._id ? 2 : 0;
+    }
+
+    return ingredients.filter((item) => item._id === ingredient._id).length;
+  };
 
   const [currentTab, setCurrentTab] = useState<TTabMode>('bun');
   const titleBunRef = useRef<HTMLHeadingElement>(null);
@@ -50,6 +67,31 @@ export const BurgerIngredients: FC = () => {
       titleSaucesRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Обработчик добавления ингредиента
+  const handleAddIngredient = (ingredient: TIngredient) => {
+    console.log(
+      'BurgerIngredients: handleAddIngredient called for',
+      ingredient.name
+    );
+
+    if (ingredient.type === 'bun') {
+      console.log('Adding bun to constructor:', ingredient.name);
+      dispatch(addBun(ingredient));
+    } else {
+      const ingredientWithUuid = {
+        ...ingredient,
+        uuid: uuidv4()
+      };
+      console.log(
+        'Adding ingredient to constructor:',
+        ingredient.name,
+        'with uuid:',
+        ingredientWithUuid.uuid
+      );
+      dispatch(addIngredient(ingredientWithUuid));
+    }
+  };
+
   return (
     <BurgerIngredientsUI
       currentTab={currentTab}
@@ -63,6 +105,9 @@ export const BurgerIngredients: FC = () => {
       mainsRef={mainsRef}
       saucesRef={saucesRef}
       onTabClick={onTabClick}
+      getIngredientCount={getIngredientCount}
+      handleAddIngredient={handleAddIngredient}
+      locationState={{ background: location }}
     />
   );
 };

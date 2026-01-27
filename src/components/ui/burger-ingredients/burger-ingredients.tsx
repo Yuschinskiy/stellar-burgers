@@ -1,6 +1,5 @@
 import React, { FC, memo } from 'react';
 import { Tab } from '@zlden/react-developer-burger-ui-components';
-
 import styles from './burger-ingredients.module.css';
 import { BurgerIngredientsUIProps } from './type';
 import { IngredientsCategory } from '@components';
@@ -17,7 +16,10 @@ export const BurgerIngredientsUI: FC<BurgerIngredientsUIProps> = memo(
     bunsRef,
     mainsRef,
     saucesRef,
-    onTabClick
+    onTabClick,
+    getIngredientCount,
+    handleAddIngredient,
+    locationState
   }) => (
     <>
       <section className={styles.burger_ingredients}>
@@ -48,18 +50,27 @@ export const BurgerIngredientsUI: FC<BurgerIngredientsUIProps> = memo(
             titleRef={titleBunRef}
             ingredients={buns}
             ref={bunsRef}
+            getIngredientCount={getIngredientCount}
+            handleAddIngredient={handleAddIngredient}
+            locationState={locationState}
           />
           <IngredientsCategory
             title='Начинки'
             titleRef={titleMainRef}
             ingredients={mains}
             ref={mainsRef}
+            getIngredientCount={getIngredientCount}
+            handleAddIngredient={handleAddIngredient}
+            locationState={locationState}
           />
           <IngredientsCategory
             title='Соусы'
             titleRef={titleSaucesRef}
             ingredients={sauces}
             ref={saucesRef}
+            getIngredientCount={getIngredientCount}
+            handleAddIngredient={handleAddIngredient}
+            locationState={locationState}
           />
         </div>
       </section>

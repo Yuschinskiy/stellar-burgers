@@ -1,4 +1,5 @@
 import { FC, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../../services/hooks';
 import { TConstructorIngredient, TIngredient, TOrder } from '@utils-types';
 import { BurgerConstructorUI } from '@ui';
@@ -7,19 +8,21 @@ import { clearConstructor } from '../../services/slices/burgerConstructorSlice';
 
 export const BurgerConstructor: FC = () => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
 
   // Берем данные из store
   const { bun, ingredients } = useAppSelector((s) => s.burgerConstructor);
   const { orderNumber, isLoading: orderRequest } = useAppSelector(
     (s) => s.order
   );
+  const { user } = useAppSelector((s) => s.user); // Добавляем проверку пользователя
 
   // Адаптируем данные для UI компонента
   const constructorItems = {
     bun: bun as TIngredient | null,
     ingredients: ingredients.map((item) => ({
       ...item,
-      id: item.uuid // преобразуем uuid в id для TConstructorIngredient
+      id: item.uuid
     })) as TConstructorIngredient[]
   };
 
@@ -37,13 +40,26 @@ export const BurgerConstructor: FC = () => {
     : null;
 
   const onOrderClick = async () => {
-    if (!constructorItems.bun || orderRequest) return;
+    // Проверяем авторизацию
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    // Проверяем наличие ингредиентов
+    if (
+      !constructorItems.bun ||
+      orderRequest ||
+      constructorItems.ingredients.length === 0
+    ) {
+      return;
+    }
 
     // Собираем массив ID ингредиентов
     const ingredientsIds = [
       constructorItems.bun._id,
       ...constructorItems.ingredients.map((item) => item._id),
-      constructorItems.bun._id // булка повторяется дважды
+      constructorItems.bun._id
     ];
 
     // Диспатчим создание заказа

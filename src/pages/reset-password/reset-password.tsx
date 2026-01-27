@@ -1,35 +1,50 @@
 import { FC, SyntheticEvent, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-import { resetPasswordApi } from '@api';
+import { useAppDispatch, useAppSelector } from '../../services/hooks';
+import { resetPassword, clearError } from '../../services/slices/userSlice';
 import { ResetPasswordUI } from '@ui-pages';
 
 export const ResetPassword: FC = () => {
-  const navigate = useNavigate();
   const [password, setPassword] = useState('');
   const [token, setToken] = useState('');
-  const [error, setError] = useState<Error | null>(null);
 
-  const handleSubmit = (e: SyntheticEvent) => {
-    e.preventDefault();
-    setError(null);
-    resetPasswordApi({ password, token })
-      .then(() => {
-        localStorage.removeItem('resetPassword');
-        navigate('/login');
-      })
-      .catch((err) => setError(err));
-  };
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
+  const { user, hasError } = useAppSelector((s) => s.user);
 
   useEffect(() => {
+    // Проверяем, что пользователь пришел с forgot-password
     if (!localStorage.getItem('resetPassword')) {
       navigate('/forgot-password', { replace: true });
     }
-  }, [navigate]);
+
+    // Если пользователь авторизован, перенаправляем
+    if (user) {
+      navigate('/');
+    }
+  }, [navigate, user]);
+
+  useEffect(
+    () => () => {
+      dispatch(clearError());
+    },
+    [dispatch]
+  );
+
+  const handleSubmit = (e: SyntheticEvent) => {
+    e.preventDefault();
+
+    // Диспатчим сброс пароля через Redux
+    dispatch(resetPassword({ password, token })).then(() => {
+      localStorage.removeItem('resetPassword');
+      navigate('/login');
+    });
+  };
 
   return (
     <ResetPasswordUI
-      errorText={error?.message}
+      errorText={hasError ? 'Ошибка сброса пароля' : ''}
       password={password}
       token={token}
       setPassword={setPassword}
