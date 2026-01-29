@@ -13,9 +13,13 @@ import { v4 as uuidv4 } from 'uuid';
 export const BurgerIngredients: FC = () => {
   const dispatch = useAppDispatch();
   const location = useLocation();
-  const { ingredients } = useAppSelector((s) => s.ingredients); // исправлено: ingredients вместо items
+
+  // Исправляем типы
+  const { ingredients, isLoading, hasError } = useAppSelector(
+    (state) => state.ingredients
+  );
   const { bun, ingredients: constructorIngredients } = useAppSelector(
-    (s) => s.burgerConstructor
+    (state) => state.constructorBurger
   );
 
   // Фильтруем ингредиенты по типам

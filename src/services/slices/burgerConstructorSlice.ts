@@ -1,12 +1,9 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { TIngredient } from '../../utils/types';
 
-// Создаем тип для ингредиента в конструкторе с уникальным id
-type TConstructorItem = TIngredient & { uuid: string };
-
 interface IBurgerConstructorState {
   bun: TIngredient | null;
-  ingredients: TConstructorItem[];
+  ingredients: TIngredient[];
 }
 
 const initialState: IBurgerConstructorState = {
@@ -21,12 +18,13 @@ const burgerConstructorSlice = createSlice({
     addBun: (state, action: PayloadAction<TIngredient>) => {
       state.bun = action.payload;
     },
-    addIngredient: (state, action: PayloadAction<TConstructorItem>) => {
+    addIngredient: (state, action: PayloadAction<TIngredient>) => {
       state.ingredients.push(action.payload);
     },
-    removeIngredient: (state, action: PayloadAction<string>) => {
+    removeIngredient: (state, action: PayloadAction<number>) => {
+      // изменено на number (индекс)
       state.ingredients = state.ingredients.filter(
-        (item) => item.uuid !== action.payload
+        (_, index) => index !== action.payload // сравниваем индексы
       );
     },
     moveIngredient: (

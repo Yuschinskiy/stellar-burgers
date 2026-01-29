@@ -1,92 +1,83 @@
 import { FC, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAppSelector, useAppDispatch } from '../../services/hooks';
-import { TConstructorIngredient, TIngredient, TOrder } from '@utils-types';
-import { BurgerConstructorUI } from '@ui';
-import { createOrder, clearOrder } from '../../services/slices/orderSlice';
+import { useAppDispatch, useAppSelector } from '../../services/hooks';
+import { BurgerConstructorUI } from '../ui/burger-constructor';
+import { createOrder, clearOrder } from '../../services/slices/orderSlice'; // добавлен clearOrder
 import { clearConstructor } from '../../services/slices/burgerConstructorSlice';
+import { TIngredient, TConstructorIngredient } from '@utils-types';
 
 export const BurgerConstructor: FC = () => {
-  const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
 
-  // Берем данные из store
-  const { bun, ingredients } = useAppSelector((s) => s.burgerConstructor);
-  const { orderNumber, isLoading: orderRequest } = useAppSelector(
-    (s) => s.order
+  const { bun, ingredients } = useAppSelector(
+    (state) => state.constructorBurger
   );
-  const { user } = useAppSelector((s) => s.user); // Добавляем проверку пользователя
 
-  // Адаптируем данные для UI компонента
-  const constructorItems = {
-    bun: bun as TIngredient | null,
-    ingredients: ingredients.map((item) => ({
-      ...item,
-      id: item.uuid
-    })) as TConstructorIngredient[]
-  };
+  const { user } = useAppSelector((state) => state.user);
+  const { orderNumber, isLoading } = useAppSelector((state) => state.order);
 
-  // Создаем правильный объект TOrder для orderModalData
-  const orderModalData: TOrder | null = orderNumber
-    ? {
-        _id: `mock-order-${orderNumber}`,
-        status: 'done',
-        name: 'Заказ',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        number: orderNumber,
-        ingredients: []
-      }
-    : null;
+  // Конвертируем TIngredient[] в TConstructorIngredient[]
+  const constructorIngredients: TConstructorIngredient[] = useMemo(
+    () =>
+      ingredients.map((ingredient: TIngredient, index: number) => ({
+        ...ingredient,
+        id: ingredient._id + index // создаем уникальный id
+      })),
+    [ingredients]
+  );
 
-  const onOrderClick = async () => {
-    // Проверяем авторизацию
+  const totalPrice = useMemo(() => {
+    const bunPrice = bun ? bun.price * 2 : 0;
+    const ingredientsPrice = ingredients.reduce(
+      (sum: number, item) => sum + item.price,
+      0
+    );
+    return bunPrice + ingredientsPrice;
+  }, [bun, ingredients]);
+
+  const onOrderClick = () => {
     if (!user) {
       navigate('/login');
       return;
     }
 
-    // Проверяем наличие ингредиентов
-    if (
-      !constructorItems.bun ||
-      orderRequest ||
-      constructorItems.ingredients.length === 0
-    ) {
+    if (!bun || ingredients.length === 0) {
       return;
     }
 
-    // Собираем массив ID ингредиентов
-    const ingredientsIds = [
-      constructorItems.bun._id,
-      ...constructorItems.ingredients.map((item) => item._id),
-      constructorItems.bun._id
+    const ingredientIds = [
+      bun._id,
+      ...ingredients.map((item: TIngredient) => item._id),
+      bun._id
     ];
 
-    // Диспатчим создание заказа
-    dispatch(createOrder(ingredientsIds));
+    dispatch(createOrder(ingredientIds))
+      .unwrap()
+      .then(() => {
+        console.log('Order created successfully');
+      })
+      .catch((error) => {
+        console.error('Error creating order:', error);
+      });
   };
 
   const closeOrderModal = () => {
+    console.log('Closing order modal, clearing order number and constructor');
+    // Очищаем номер заказа И конструктор
     dispatch(clearOrder());
     dispatch(clearConstructor());
   };
 
-  const price = useMemo(
-    () =>
-      (constructorItems.bun ? constructorItems.bun.price * 2 : 0) +
-      constructorItems.ingredients.reduce(
-        (s: number, v: TConstructorIngredient) => s + v.price,
-        0
-      ),
-    [constructorItems]
-  );
-
   return (
     <BurgerConstructorUI
-      price={price}
-      orderRequest={orderRequest}
-      constructorItems={constructorItems}
-      orderModalData={orderModalData}
+      price={totalPrice}
+      constructorItems={{
+        bun,
+        ingredients: constructorIngredients // используем конвертированный массив
+      }}
+      orderRequest={isLoading}
+      orderModalData={orderNumber ? { number: orderNumber } : null}
       onOrderClick={onOrderClick}
       closeOrderModal={closeOrderModal}
     />

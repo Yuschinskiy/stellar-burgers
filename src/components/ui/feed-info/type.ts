@@ -1,7 +1,10 @@
 export type FeedInfoUIProps = {
-  feed: any;
   readyOrders: number[];
   pendingOrders: number[];
+  feed: {
+    total: number;
+    totalToday: number;
+  };
 };
 
 export type HalfColumnProps = {

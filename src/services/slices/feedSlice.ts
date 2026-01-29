@@ -8,6 +8,8 @@ interface IFeedState {
   totalToday: number;
   isLoading: boolean;
   hasError: boolean;
+  wsConnected: boolean;
+  wsError: string | null;
 }
 
 const initialState: IFeedState = {
@@ -15,7 +17,9 @@ const initialState: IFeedState = {
   total: 0,
   totalToday: 0,
   isLoading: false,
-  hasError: false
+  hasError: false,
+  wsConnected: false,
+  wsError: null
 };
 
 export const fetchFeeds = createAsyncThunk('feeds/fetchFeeds', async () => {
@@ -47,6 +51,39 @@ const feedSlice = createSlice({
     },
     setFeedError: (state, action: PayloadAction<boolean>) => {
       state.hasError = action.payload;
+    },
+
+    // WebSocket actions
+    wsConnect: (state, action: PayloadAction<string>) => {
+      // URL будет использоваться в middleware
+    },
+
+    wsDisconnect: (state) => {
+      state.wsConnected = false;
+    },
+
+    wsConnecting: (state) => {
+      state.wsConnected = false;
+    },
+
+    wsOpen: (state) => {
+      state.wsConnected = true;
+      state.wsError = null;
+    },
+
+    wsClose: (state) => {
+      state.wsConnected = false;
+    },
+
+    wsError: (state, action: PayloadAction<string>) => {
+      state.wsError = action.payload;
+    },
+
+    wsMessage: (state, action: PayloadAction<TOrdersData>) => {
+      state.orders = action.payload.orders;
+      state.total = action.payload.total;
+      state.totalToday = action.payload.totalToday;
+      state.isLoading = false;
     }
   },
   extraReducers: (builder) => {
@@ -73,6 +110,13 @@ export const {
   setFeedTotal,
   setFeedTotalToday,
   setFeedLoading,
-  setFeedError
+  setFeedError,
+  wsConnect,
+  wsDisconnect,
+  wsConnecting,
+  wsOpen,
+  wsClose,
+  wsError,
+  wsMessage
 } = feedSlice.actions;
 export const feedReducer = feedSlice.reducer;
