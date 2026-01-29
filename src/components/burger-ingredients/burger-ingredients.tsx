@@ -13,13 +13,17 @@ import { v4 as uuidv4 } from 'uuid';
 export const BurgerIngredients: FC = () => {
   const dispatch = useAppDispatch();
   const location = useLocation();
-  const { items } = useAppSelector((s) => s.ingredients);
-  const { bun, ingredients } = useAppSelector((s) => s.burgerConstructor);
+  const { ingredients } = useAppSelector((s) => s.ingredients); // исправлено: ingredients вместо items
+  const { bun, ingredients: constructorIngredients } = useAppSelector(
+    (s) => s.burgerConstructor
+  );
 
   // Фильтруем ингредиенты по типам
-  const buns = items.filter((item: TIngredient) => item.type === 'bun');
-  const mains = items.filter((item: TIngredient) => item.type === 'main');
-  const sauces = items.filter((item: TIngredient) => item.type === 'sauce');
+  const buns = ingredients.filter((item: TIngredient) => item.type === 'bun');
+  const mains = ingredients.filter((item: TIngredient) => item.type === 'main');
+  const sauces = ingredients.filter(
+    (item: TIngredient) => item.type === 'sauce'
+  );
 
   // Считаем количество каждого ингредиента в конструкторе
   const getIngredientCount = (ingredient: TIngredient) => {
@@ -27,7 +31,8 @@ export const BurgerIngredients: FC = () => {
       return bun && bun._id === ingredient._id ? 2 : 0;
     }
 
-    return ingredients.filter((item) => item._id === ingredient._id).length;
+    return constructorIngredients.filter((item) => item._id === ingredient._id)
+      .length;
   };
 
   const [currentTab, setCurrentTab] = useState<TTabMode>('bun');

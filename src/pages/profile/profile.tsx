@@ -5,7 +5,7 @@ import { updateUserProfile } from '../../services/slices/userSlice';
 
 export const Profile: FC = () => {
   const dispatch = useAppDispatch();
-  const { user } = useAppSelector((s) => s.user);
+  const { user, isLoading, hasError } = useAppSelector((s) => s.user);
 
   const [formValue, setFormValue] = useState({
     name: user?.name || '',
@@ -13,19 +13,28 @@ export const Profile: FC = () => {
     password: ''
   });
 
+  const [originalValues, setOriginalValues] = useState({
+    name: user?.name || '',
+    email: user?.email || ''
+  });
+
   useEffect(() => {
     if (user) {
-      setFormValue({
+      const newValues = {
         name: user.name,
-        email: user.email,
+        email: user.email
+      };
+      setFormValue({
+        ...newValues,
         password: ''
       });
+      setOriginalValues(newValues);
     }
   }, [user]);
 
   const isFormChanged =
-    formValue.name !== user?.name ||
-    formValue.email !== user?.email ||
+    formValue.name !== originalValues.name ||
+    formValue.email !== originalValues.email ||
     !!formValue.password;
 
   const handleSubmit = (e: SyntheticEvent) => {
@@ -37,19 +46,25 @@ export const Profile: FC = () => {
           email: formValue.email,
           password: formValue.password || undefined
         })
-      );
+      ).then(() => {
+        // После успешного сохранения обновляем оригинальные значения
+        setOriginalValues({
+          name: formValue.name,
+          email: formValue.email
+        });
+        // Очищаем пароль
+        setFormValue((prev) => ({ ...prev, password: '' }));
+      });
     }
   };
 
   const handleCancel = (e: SyntheticEvent) => {
     e.preventDefault();
-    if (user) {
-      setFormValue({
-        name: user.name,
-        email: user.email,
-        password: ''
-      });
-    }
+    setFormValue({
+      name: originalValues.name,
+      email: originalValues.email,
+      password: ''
+    });
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -63,6 +78,7 @@ export const Profile: FC = () => {
     <ProfileUI
       formValue={formValue}
       isFormChanged={isFormChanged}
+      updateUserError={hasError ? 'Ошибка при обновлении профиля' : undefined}
       handleCancel={handleCancel}
       handleSubmit={handleSubmit}
       handleInputChange={handleInputChange}

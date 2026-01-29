@@ -1,0 +1,43 @@
+.header {
+  background-color: #1c1c21;
+}
+
+.menu {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.menu_part_left {
+  display: flex;
+  gap: 8px;
+}
+
+.logo {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.link_position_last {
+  display: flex;
+  align-items: center;
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: #8585ad;
+  transition: color 0.3s;
+}
+
+.link:hover {
+  color: #f2f2f3;
+}
+
+.active {
+  color: #f2f2f3;
+}

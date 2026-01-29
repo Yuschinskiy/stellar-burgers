@@ -10,7 +10,7 @@ export type TIngredient = {
   image: string;
   image_large: string;
   image_mobile: string;
-  uuid?: string; // Добавляем опциональное поле
+  uuid?: string;
 };
 
 export type TConstructorIngredient = TIngredient & {

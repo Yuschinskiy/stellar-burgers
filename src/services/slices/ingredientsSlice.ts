@@ -1,15 +1,15 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { getIngredientsApi } from '../../utils/burger-api';
 import { TIngredient } from '../../utils/types';
 
 interface IIngredientsState {
-  items: TIngredient[];
+  ingredients: TIngredient[];
   isLoading: boolean;
   hasError: boolean;
 }
 
 const initialState: IIngredientsState = {
-  items: [],
+  ingredients: [], // правильно: ingredients
   isLoading: false,
   hasError: false
 };
@@ -41,7 +41,7 @@ const ingredientsSlice = createSlice({
       })
       .addCase(getIngredients.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.items = action.payload;
+        state.ingredients = action.payload; // исправлено: ingredients вместо items
       })
       .addCase(getIngredients.rejected, (state) => {
         state.isLoading = false;

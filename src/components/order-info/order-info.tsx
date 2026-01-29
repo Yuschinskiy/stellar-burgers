@@ -1,26 +1,28 @@
 import { FC, useMemo } from 'react';
+import { useParams, useLocation } from 'react-router-dom';
 import { Preloader } from '../ui/preloader';
 import { OrderInfoUI } from '../ui/order-info';
+import { useAppSelector } from '../../services/hooks';
 import { TIngredient } from '@utils-types';
 
 export const OrderInfo: FC = () => {
-  /** TODO: взять переменные orderData и ingredients из стора */
-  const orderData = {
-    createdAt: '',
-    ingredients: [],
-    _id: '',
-    status: '',
-    name: '',
-    updatedAt: 'string',
-    number: 0
-  };
+  const { number } = useParams<{ number: string }>();
+  const location = useLocation();
+  const background = location.state?.background;
+  const isProfilePage = location.pathname.includes('/profile/orders');
 
-  const ingredients: TIngredient[] = [];
+  const { orders: feedOrders } = useAppSelector((s) => s.feed);
+  const { orders: userOrders } = useAppSelector((s) => s.userOrders);
+  const { ingredients } = useAppSelector((s) => s.ingredients);
 
-  /* Готовим данные для отображения */
+  const orders = isProfilePage ? userOrders : feedOrders;
+  const orderData = orders.find((order) => order.number === Number(number));
+
+  if (!orderData || !ingredients.length) {
+    return background ? null : <Preloader />;
+  }
+
   const orderInfo = useMemo(() => {
-    if (!orderData || !ingredients.length) return null;
-
     const date = new Date(orderData.createdAt);
 
     type TIngredientsWithCount = {
@@ -30,7 +32,9 @@ export const OrderInfo: FC = () => {
     const ingredientsInfo = orderData.ingredients.reduce(
       (acc: TIngredientsWithCount, item) => {
         if (!acc[item]) {
-          const ingredient = ingredients.find((ing) => ing._id === item);
+          const ingredient = ingredients.find(
+            (ing: TIngredient) => ing._id === item
+          );
           if (ingredient) {
             acc[item] = {
               ...ingredient,
@@ -40,7 +44,6 @@ export const OrderInfo: FC = () => {
         } else {
           acc[item].count++;
         }
-
         return acc;
       },
       {}
@@ -58,10 +61,6 @@ export const OrderInfo: FC = () => {
       total
     };
   }, [orderData, ingredients]);
-
-  if (!orderInfo) {
-    return <Preloader />;
-  }
 
   return <OrderInfoUI orderInfo={orderInfo} />;
 };
