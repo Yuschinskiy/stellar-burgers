@@ -7,26 +7,26 @@ import { feedReducer } from './slices/feedSlice';
 import { userOrdersReducer } from './slices/userOrdersSlice';
 import { socketMiddleware } from './middleware/socketMiddleware';
 
-// Определяем типы actions для WebSocket как строки
-const feedWsActions = {
-  wsConnect: 'feed/wsConnect',
-  wsDisconnect: 'feed/wsDisconnect',
-  wsConnecting: 'feed/wsConnecting',
-  wsOpen: 'feed/wsOpen',
-  wsClose: 'feed/wsClose',
-  wsError: 'feed/wsError',
-  wsMessage: 'feed/wsMessage'
-};
+// Импортируем actions
+import {
+  wsConnect as feedWsConnect,
+  wsDisconnect as feedWsDisconnect,
+  wsConnecting as feedWsConnecting,
+  wsOpen as feedWsOpen,
+  wsClose as feedWsClose,
+  wsError as feedWsError,
+  wsMessage as feedWsMessage
+} from './slices/feedSlice';
 
-const userWsActions = {
-  wsConnect: 'userOrders/wsConnect',
-  wsDisconnect: 'userOrders/wsDisconnect',
-  wsConnecting: 'userOrders/wsConnecting',
-  wsOpen: 'userOrders/wsOpen',
-  wsClose: 'userOrders/wsClose',
-  wsError: 'userOrders/wsError',
-  wsMessage: 'userOrders/wsMessage'
-};
+import {
+  wsConnect as userWsConnect,
+  wsDisconnect as userWsDisconnect,
+  wsConnecting as userWsConnecting,
+  wsOpen as userWsOpen,
+  wsClose as userWsClose,
+  wsError as userWsError,
+  wsMessage as userWsMessage
+} from './slices/userOrdersSlice';
 
 export const store = configureStore({
   reducer: {
@@ -39,8 +39,28 @@ export const store = configureStore({
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware()
-      .concat(socketMiddleware(feedWsActions))
-      .concat(socketMiddleware(userWsActions))
+      .concat(
+        socketMiddleware({
+          wsConnect: feedWsConnect.type,
+          wsDisconnect: feedWsDisconnect.type,
+          wsConnecting: feedWsConnecting.type,
+          wsOpen: feedWsOpen.type,
+          wsClose: feedWsClose.type,
+          wsError: feedWsError.type,
+          wsMessage: feedWsMessage.type
+        })
+      )
+      .concat(
+        socketMiddleware({
+          wsConnect: userWsConnect.type,
+          wsDisconnect: userWsDisconnect.type,
+          wsConnecting: userWsConnecting.type,
+          wsOpen: userWsOpen.type,
+          wsClose: userWsClose.type,
+          wsError: userWsError.type,
+          wsMessage: userWsMessage.type
+        })
+      )
 });
 
 export type RootState = ReturnType<typeof store.getState>;

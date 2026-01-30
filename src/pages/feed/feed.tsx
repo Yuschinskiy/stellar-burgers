@@ -2,46 +2,57 @@ import { FC, useEffect } from 'react';
 import { Preloader } from '@ui';
 import { FeedUI } from '@ui-pages';
 import { useAppDispatch, useAppSelector } from '../../services/hooks';
-import { fetchFeeds } from '../../services/slices/feedSlice';
+import { fetchFeeds } from '../../services/slices/feedSlice'; // Используем HTTP
 
 export const Feed: FC = () => {
   const dispatch = useAppDispatch();
-  const { orders, total, totalToday, isLoading } = useAppSelector(
+  const { orders, total, totalToday, isLoading, hasError } = useAppSelector(
     (s) => s.feed
   );
 
-  console.log('Feed component state:', {
+  console.log('🟠 Feed component state:', {
     orders: orders.length,
     total,
     totalToday,
-    isLoading
+    isLoading,
+    hasError
   });
 
+  // Загружаем данные через HTTP
   useEffect(() => {
-    console.log('Feed: fetching feeds...');
+    console.log('🟠 Feed: Fetching feeds via HTTP...');
     dispatch(fetchFeeds());
 
-    // Периодическое обновление (вместо WebSocket)
+    // Обновляем каждые 30 секунд
     const interval = setInterval(() => {
-      console.log('Feed: refreshing feeds...');
+      console.log('🟠 Feed: Refreshing feeds...');
       dispatch(fetchFeeds());
-    }, 5000); // Обновлять каждые 5 секунд
+    }, 30000);
 
     return () => {
       clearInterval(interval);
     };
   }, [dispatch]);
 
+  const handleGetFeeds = () => {
+    console.log('Manual refresh requested');
+    dispatch(fetchFeeds());
+  };
+
   if (isLoading && orders.length === 0) {
     return <Preloader />;
   }
 
-  const handleGetFeeds = () => {
-    console.log('Refreshing feeds...');
-    dispatch(fetchFeeds());
-  };
+  if (hasError) {
+    return (
+      <div style={{ textAlign: 'center', padding: '40px' }}>
+        <h2>Ошибка загрузки ленты заказов</h2>
+        <button onClick={handleGetFeeds}>Попробовать снова</button>
+      </div>
+    );
+  }
 
-  console.log('Feed: rendering with', orders.length, 'orders');
+  console.log('🟠 Feed: rendering with', orders.length, 'orders');
 
   return <FeedUI orders={orders} handleGetFeeds={handleGetFeeds} />;
 };

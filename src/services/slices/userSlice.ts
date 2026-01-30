@@ -11,6 +11,7 @@ import {
   TLoginData
 } from '../../utils/burger-api';
 import { TUser } from '../../utils/types';
+import { deleteCookie, getCookie } from '../../utils/cookie'; // Добавить импорт
 
 interface IUserState {
   user: TUser | null;
@@ -33,9 +34,14 @@ const initialState: IUserState = {
 // Проверка авторизации
 export const checkUserAuth = createAsyncThunk(
   'user/checkUserAuth',
-  async () => {
-    const response = await getUserApi();
-    return response.user;
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await getUserApi();
+      return response.user;
+    } catch (error) {
+      // При ошибке 401 просто возвращаем null (пользователь не авторизован)
+      return rejectWithValue('Not authenticated');
+    }
   }
 );
 
@@ -57,9 +63,29 @@ export const registerUser = createAsyncThunk(
   }
 );
 
-// Выход
+// Выход - ИСПРАВЛЕННЫЙ ВАРИАНТ
 export const logoutUser = createAsyncThunk('user/logout', async () => {
-  await logoutApi();
+  try {
+    // Пробуем отправить запрос на выход
+    await logoutApi();
+  } catch (error) {
+    console.log('Logout API error, but continuing with cleanup', error);
+    // Продолжаем даже если API ошибка
+  } finally {
+    // ВСЕГДА очищаем токены локально
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+
+    // Удаляем cookies
+    deleteCookie('accessToken');
+    deleteCookie('refreshToken');
+
+    // Также чистим все возможные варианты хранения
+    document.cookie =
+      'accessToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    document.cookie =
+      'refreshToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+  }
 });
 
 // Обновление данных пользователя
@@ -99,6 +125,11 @@ const userSlice = createSlice({
     },
     clearForgotPassword: (state) => {
       state.forgotPasswordSuccess = false;
+    },
+    // Добавляем редьюсер для принудительного выхода
+    forceLogout: (state) => {
+      state.user = null;
+      state.isAuthChecked = true;
     }
   },
   extraReducers: (builder) => {
@@ -107,10 +138,13 @@ const userSlice = createSlice({
       .addCase(checkUserAuth.fulfilled, (state, action) => {
         state.user = action.payload;
         state.isAuthChecked = true;
+        state.hasError = false;
       })
-      .addCase(checkUserAuth.rejected, (state) => {
+      .addCase(checkUserAuth.rejected, (state, action) => {
+        console.log('Auth check rejected:', action.payload);
         state.user = null;
         state.isAuthChecked = true;
+        state.hasError = false; // Это не ошибка, просто не авторизован
       })
       // Логин
       .addCase(loginUser.pending, (state) => {
@@ -120,6 +154,7 @@ const userSlice = createSlice({
       .addCase(loginUser.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = action.payload;
+        state.hasError = false;
       })
       .addCase(loginUser.rejected, (state) => {
         state.isLoading = false;
@@ -133,14 +168,26 @@ const userSlice = createSlice({
       .addCase(registerUser.fulfilled, (state, action) => {
         state.isLoading = false;
         state.user = action.payload;
+        state.hasError = false;
       })
       .addCase(registerUser.rejected, (state) => {
         state.isLoading = false;
         state.hasError = true;
       })
-      // Выход
+      // ВЫХОД - ИСПРАВЛЕННЫЙ
+      .addCase(logoutUser.pending, (state) => {
+        state.isLoading = true;
+      })
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
+        state.isLoading = false;
+        state.isAuthChecked = true;
+      })
+      .addCase(logoutUser.rejected, (state) => {
+        // Даже если API ошибка, считаем что выход выполнен
+        state.user = null;
+        state.isLoading = false;
+        state.isAuthChecked = true;
       })
       // Обновление профиля
       .addCase(updateUserProfile.fulfilled, (state, action) => {
@@ -166,6 +213,6 @@ const userSlice = createSlice({
   }
 });
 
-export const { setAuthChecked, clearError, clearForgotPassword } =
+export const { setAuthChecked, clearError, clearForgotPassword, forceLogout } =
   userSlice.actions;
 export const userReducer = userSlice.reducer;

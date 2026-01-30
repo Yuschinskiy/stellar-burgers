@@ -4,7 +4,6 @@ import { useAppDispatch, useAppSelector } from '../../services/hooks';
 import { BurgerConstructorUI } from '../ui/burger-constructor';
 import { createOrder } from '../../services/slices/orderSlice';
 import { clearConstructor } from '../../services/slices/burgerConstructorSlice';
-import { fetchFeeds } from '../../services/slices/feedSlice';
 import { clearOrder } from '../../services/slices/orderSlice';
 import { TIngredient, TConstructorIngredient } from '@utils-types';
 
@@ -66,7 +65,7 @@ export const BurgerConstructor: FC = () => {
       .unwrap()
       .then((newOrderNumber) => {
         console.log('🟢 Order created successfully:', newOrderNumber);
-        dispatch(fetchFeeds());
+        // УБРАЛИ fetchFeeds - данные теперь через WebSocket
       })
       .catch((error) => {
         console.error('🔴 Error creating order:', error);
