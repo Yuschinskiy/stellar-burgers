@@ -5,6 +5,8 @@ import { BurgerConstructorUI } from '../ui/burger-constructor';
 import { createOrder } from '../../services/slices/orderSlice';
 import { clearConstructor } from '../../services/slices/burgerConstructorSlice';
 import { clearOrder } from '../../services/slices/orderSlice';
+import { fetchFeeds } from '../../services/slices/feedSlice';
+import { fetchUserOrders } from '../../services/slices/userOrdersSlice'; // Добавить
 import { TIngredient, TConstructorIngredient } from '@utils-types';
 
 export const BurgerConstructor: FC = () => {
@@ -50,6 +52,7 @@ export const BurgerConstructor: FC = () => {
     }
 
     if (!bun || ingredients.length === 0) {
+      alert('Добавьте булку и ингредиенты!');
       return;
     }
 
@@ -65,11 +68,18 @@ export const BurgerConstructor: FC = () => {
       .unwrap()
       .then((newOrderNumber) => {
         console.log('🟢 Order created successfully:', newOrderNumber);
-        // УБРАЛИ fetchFeeds - данные теперь через WebSocket
+
+        // Обновляем ленту заказов
+        dispatch(fetchFeeds());
+
+        // Обновляем историю заказов пользователя
+        dispatch(fetchUserOrders());
+
+        console.log('🟢 Feeds and user orders refreshed');
       })
       .catch((error) => {
         console.error('🔴 Error creating order:', error);
-        alert('Ошибка при создании заказа');
+        alert('Ошибка при создании заказа: ' + error.message);
       });
   };
 
