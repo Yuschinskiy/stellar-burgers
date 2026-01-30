@@ -19,8 +19,28 @@ export const FeedInfo: FC = () => {
     totalToday
   });
 
+  // Исправим получение уникальных статусов
+  const uniqueStatuses: string[] = [];
+  orders.forEach((order) => {
+    if (!uniqueStatuses.includes(order.status)) {
+      uniqueStatuses.push(order.status);
+    }
+  });
+
+  console.log('Уникальные статусы заказов:', uniqueStatuses);
+
+  // Посчитаем заказы по статусам
+  const statusCounts: Record<string, number> = {};
+  orders.forEach((order) => {
+    statusCounts[order.status] = (statusCounts[order.status] || 0) + 1;
+  });
+  console.log('Количество по статусам:', statusCounts);
+
   const readyOrders = getOrders(orders, 'done');
   const pendingOrders = getOrders(orders, 'pending');
+
+  console.log('Готовые заказы:', readyOrders.length);
+  console.log('Заказы в работе:', pendingOrders.length);
 
   const feed = {
     total,

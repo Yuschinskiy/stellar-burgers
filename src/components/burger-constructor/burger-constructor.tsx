@@ -2,8 +2,10 @@ import { FC, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../services/hooks';
 import { BurgerConstructorUI } from '../ui/burger-constructor';
-import { createOrder, clearOrder } from '../../services/slices/orderSlice'; // добавлен clearOrder
+import { createOrder } from '../../services/slices/orderSlice';
 import { clearConstructor } from '../../services/slices/burgerConstructorSlice';
+import { fetchFeeds } from '../../services/slices/feedSlice';
+import { clearOrder } from '../../services/slices/orderSlice';
 import { TIngredient, TConstructorIngredient } from '@utils-types';
 
 export const BurgerConstructor: FC = () => {
@@ -17,12 +19,18 @@ export const BurgerConstructor: FC = () => {
   const { user } = useAppSelector((state) => state.user);
   const { orderNumber, isLoading } = useAppSelector((state) => state.order);
 
-  // Конвертируем TIngredient[] в TConstructorIngredient[]
+  console.log(
+    '🟢 BurgerConstructor - orderNumber:',
+    orderNumber,
+    'isLoading:',
+    isLoading
+  );
+
   const constructorIngredients: TConstructorIngredient[] = useMemo(
     () =>
       ingredients.map((ingredient: TIngredient, index: number) => ({
         ...ingredient,
-        id: ingredient._id + index // создаем уникальный id
+        id: ingredient._id + index
       })),
     [ingredients]
   );
@@ -52,21 +60,25 @@ export const BurgerConstructor: FC = () => {
       bun._id
     ];
 
+    console.log('🟢 Creating order with ingredients:', ingredientIds);
+
     dispatch(createOrder(ingredientIds))
       .unwrap()
-      .then(() => {
-        console.log('Order created successfully');
+      .then((newOrderNumber) => {
+        console.log('🟢 Order created successfully:', newOrderNumber);
+        dispatch(fetchFeeds());
       })
       .catch((error) => {
-        console.error('Error creating order:', error);
+        console.error('🔴 Error creating order:', error);
+        alert('Ошибка при создании заказа');
       });
   };
 
   const closeOrderModal = () => {
-    console.log('Closing order modal, clearing order number and constructor');
-    // Очищаем номер заказа И конструктор
-    dispatch(clearOrder());
+    console.log('🟢 closeOrderModal called - clearing order');
     dispatch(clearConstructor());
+    dispatch(clearOrder());
+    console.log('🟢 Order should be cleared now');
   };
 
   return (
@@ -74,7 +86,7 @@ export const BurgerConstructor: FC = () => {
       price={totalPrice}
       constructorItems={{
         bun,
-        ingredients: constructorIngredients // используем конвертированный массив
+        ingredients: constructorIngredients
       }}
       orderRequest={isLoading}
       orderModalData={orderNumber ? { number: orderNumber } : null}

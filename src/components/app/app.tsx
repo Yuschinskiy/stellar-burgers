@@ -1,11 +1,5 @@
 import { FC, useEffect } from 'react';
-import {
-  Routes,
-  Route,
-  useLocation,
-  useNavigate,
-  Location
-} from 'react-router-dom';
+import { Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 
 import { AppHeader } from '@components';
 import {
@@ -28,8 +22,14 @@ import { Preloader } from '@ui';
 import styles from './app.module.css';
 import '../../index.css';
 
+// Обновленный тип для background state
 type BackgroundState = {
-  background?: Location;
+  background?: {
+    pathname: string;
+    search: string;
+    hash: string;
+  };
+  isProfileOrder?: boolean;
 };
 
 const App: FC = () => {
@@ -40,6 +40,9 @@ const App: FC = () => {
   const state = location.state as BackgroundState | null;
   const background = state?.background;
 
+  console.log('🔴 App - location state:', state);
+  console.log('🔴 App - background:', background);
+
   const { isLoading, hasError } = useAppSelector((s) => s.ingredients);
   const { isAuthChecked } = useAppSelector((s) => s.user);
 
@@ -48,7 +51,10 @@ const App: FC = () => {
     dispatch(checkUserAuth());
   }, [dispatch]);
 
-  const handleModalClose = () => navigate(-1);
+  const handleModalClose = () => {
+    console.log('🔴 App - Closing modal, background:', background);
+    navigate(-1);
+  };
 
   return (
     <div className={styles.app}>
@@ -64,7 +70,9 @@ const App: FC = () => {
         </div>
       ) : (
         <>
-          <Routes location={background || location}>
+          <Routes
+            location={background ? { ...location, ...background } : location}
+          >
             <Route path='/' element={<ConstructorPage />} />
             <Route path='/feed' element={<Feed />} />
             <Route path='/feed/:number' element={<OrderInfo />} />
