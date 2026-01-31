@@ -1,3 +1,5 @@
+import { Location } from 'react-router-dom';
+
 export type TIngredient = {
   _id: string;
   name: string;
@@ -39,3 +41,18 @@ export type TUser = {
 };
 
 export type TTabMode = 'bun' | 'sauce' | 'main';
+
+// Добавляем новый тип для location state
+export type TLocationState = {
+  background?: Location;
+  isProfileOrder?: boolean;
+};
+
+// Добавляем тип для WebSocket ответа
+export type TWsResponse = {
+  success: boolean;
+  orders: TOrder[];
+  total: number;
+  totalToday: number;
+  message?: string;
+};

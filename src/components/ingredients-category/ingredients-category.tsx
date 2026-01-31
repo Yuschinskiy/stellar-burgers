@@ -1,9 +1,8 @@
 import { forwardRef } from 'react';
 import { TIngredient } from '@utils-types';
-import { BurgerIngredientUI } from '@ui'; // Правильный импорт из @ui
+import { BurgerIngredientUI } from '@ui';
 import { TIngredientsCategoryProps } from './type';
 
-// Временное решение - inline стили вместо CSS файла
 const styles = {
   items: {
     display: 'grid',

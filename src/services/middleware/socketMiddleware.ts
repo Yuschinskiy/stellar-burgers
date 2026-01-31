@@ -1,6 +1,6 @@
 import type { Middleware, MiddlewareAPI } from 'redux';
 import type { AppDispatch, RootState } from '../store';
-import { TOrdersData } from '../../utils/types';
+import { TOrdersData, TWsResponse } from '../../utils/types';
 
 type TWsActionTypes = {
   wsConnect: string;
@@ -12,6 +12,11 @@ type TWsActionTypes = {
   wsMessage: string;
 };
 
+type TWsAction<P = unknown> = {
+  type: string;
+  payload?: P;
+};
+
 export const socketMiddleware = (wsActions: TWsActionTypes): Middleware =>
   ((store: MiddlewareAPI<AppDispatch, RootState>) => {
     let socket: WebSocket | null = null;
@@ -19,14 +24,13 @@ export const socketMiddleware = (wsActions: TWsActionTypes): Middleware =>
     let reconnectTimer = 0;
     let url = '';
 
-    return (next) => (action: any) => {
-      // используем any для action
+    return (next) => (action: TWsAction) => {
       const { dispatch } = store;
       const { type, payload } = action;
 
       if (type === wsActions.wsConnect) {
         console.log('WebSocket: Connecting...');
-        url = payload;
+        url = payload as string;
         socket = new WebSocket(url);
         isConnected = true;
         dispatch({ type: wsActions.wsConnecting });
@@ -36,12 +40,12 @@ export const socketMiddleware = (wsActions: TWsActionTypes): Middleware =>
           dispatch({ type: wsActions.wsOpen });
         };
 
-        socket.onerror = (error) => {
+        socket.onerror = (error: Event) => {
           console.error('WebSocket: Error', error);
           dispatch({ type: wsActions.wsError, payload: 'WebSocket error' });
         };
 
-        socket.onclose = (event) => {
+        socket.onclose = (event: CloseEvent) => {
           console.log('WebSocket: Closed', event.code, event.reason);
           dispatch({ type: wsActions.wsClose });
 
@@ -53,12 +57,19 @@ export const socketMiddleware = (wsActions: TWsActionTypes): Middleware =>
           }
         };
 
-        socket.onmessage = (event) => {
+        socket.onmessage = (event: MessageEvent) => {
           try {
-            const data = JSON.parse(event.data);
+            const data = JSON.parse(event.data) as TWsResponse;
 
             if (data.success) {
-              dispatch({ type: wsActions.wsMessage, payload: data });
+              dispatch({
+                type: wsActions.wsMessage,
+                payload: {
+                  orders: data.orders,
+                  total: data.total,
+                  totalToday: data.totalToday
+                } as TOrdersData
+              });
             } else {
               dispatch({
                 type: wsActions.wsError,

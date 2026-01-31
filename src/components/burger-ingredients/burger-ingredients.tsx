@@ -14,7 +14,6 @@ export const BurgerIngredients: FC = () => {
   const dispatch = useAppDispatch();
   const location = useLocation();
 
-  // Исправляем типы
   const { ingredients, isLoading, hasError } = useAppSelector(
     (state) => state.ingredients
   );
@@ -22,16 +21,16 @@ export const BurgerIngredients: FC = () => {
     (state) => state.constructorBurger
   );
 
-  // Фильтруем ингредиенты по типам
   const buns = ingredients.filter((item: TIngredient) => item.type === 'bun');
   const mains = ingredients.filter((item: TIngredient) => item.type === 'main');
   const sauces = ingredients.filter(
     (item: TIngredient) => item.type === 'sauce'
   );
 
-  // Считаем количество каждого ингредиента в конструкторе
-  const getIngredientCount = (ingredient: TIngredient) => {
+  // ВОЗВРАЩАЕМ number, НО с правильной логикой
+  const getIngredientCount = (ingredient: TIngredient): number => {
     if (ingredient.type === 'bun') {
+      // Возвращаем 2 для выбранной булки, 0 для остальных
       return bun && bun._id === ingredient._id ? 2 : 0;
     }
 
@@ -76,7 +75,6 @@ export const BurgerIngredients: FC = () => {
       titleSaucesRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  // Обработчик добавления ингредиента
   const handleAddIngredient = (ingredient: TIngredient) => {
     console.log(
       'BurgerIngredients: handleAddIngredient called for',

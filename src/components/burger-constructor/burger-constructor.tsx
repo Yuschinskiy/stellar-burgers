@@ -1,12 +1,15 @@
 import { FC, useMemo } from 'react';
+import { BurgerConstructorUI } from '@ui';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../services/hooks';
-import { BurgerConstructorUI } from '../ui/burger-constructor';
 import { createOrder } from '../../services/slices/orderSlice';
-import { clearConstructor } from '../../services/slices/burgerConstructorSlice';
+import {
+  clearConstructor,
+  removeIngredient
+} from '../../services/slices/burgerConstructorSlice'; // Добавили импорт
 import { clearOrder } from '../../services/slices/orderSlice';
 import { fetchFeeds } from '../../services/slices/feedSlice';
-import { fetchUserOrders } from '../../services/slices/userOrdersSlice'; // Добавить
+import { fetchUserOrders } from '../../services/slices/userOrdersSlice';
 import { TIngredient, TConstructorIngredient } from '@utils-types';
 
 export const BurgerConstructor: FC = () => {
@@ -16,16 +19,8 @@ export const BurgerConstructor: FC = () => {
   const { bun, ingredients } = useAppSelector(
     (state) => state.constructorBurger
   );
-
   const { user } = useAppSelector((state) => state.user);
   const { orderNumber, isLoading } = useAppSelector((state) => state.order);
-
-  console.log(
-    '🟢 BurgerConstructor - orderNumber:',
-    orderNumber,
-    'isLoading:',
-    isLoading
-  );
 
   const constructorIngredients: TConstructorIngredient[] = useMemo(
     () =>
@@ -45,12 +40,17 @@ export const BurgerConstructor: FC = () => {
     return bunPrice + ingredientsPrice;
   }, [bun, ingredients]);
 
+  // Обработчик удаления ингредиента по индексу
+  const handleRemoveIngredient = (index: number) => {
+    console.log('🟢 Removing ingredient at index:', index);
+    dispatch(removeIngredient(index));
+  };
+
   const onOrderClick = () => {
     if (!user) {
       navigate('/login');
       return;
     }
-
     if (!bun || ingredients.length === 0) {
       alert('Добавьте булку и ингредиенты!');
       return;
@@ -63,19 +63,14 @@ export const BurgerConstructor: FC = () => {
     ];
 
     console.log('🟢 Creating order with ingredients:', ingredientIds);
-
     dispatch(createOrder(ingredientIds))
       .unwrap()
       .then((newOrderNumber) => {
         console.log('🟢 Order created successfully:', newOrderNumber);
-
-        // Обновляем ленту заказов
+        dispatch(clearConstructor());
         dispatch(fetchFeeds());
-
-        // Обновляем историю заказов пользователя
         dispatch(fetchUserOrders());
-
-        console.log('🟢 Feeds and user orders refreshed');
+        console.log('🟢 Constructor cleared and feeds refreshed');
       })
       .catch((error) => {
         console.error('🔴 Error creating order:', error);
@@ -84,10 +79,8 @@ export const BurgerConstructor: FC = () => {
   };
 
   const closeOrderModal = () => {
-    console.log('🟢 closeOrderModal called - clearing order');
-    dispatch(clearConstructor());
+    console.log('🟢 closeOrderModal called - clearing order modal data');
     dispatch(clearOrder());
-    console.log('🟢 Order should be cleared now');
   };
 
   return (
@@ -101,6 +94,7 @@ export const BurgerConstructor: FC = () => {
       orderModalData={orderNumber ? { number: orderNumber } : null}
       onOrderClick={onOrderClick}
       closeOrderModal={closeOrderModal}
+      handleRemoveIngredient={handleRemoveIngredient} // Передаем обработчик
     />
   );
 };

@@ -3,12 +3,21 @@ import { BurgerConstructorElementUI } from '@ui';
 import { BurgerConstructorElementProps } from './type';
 
 export const BurgerConstructorElement: FC<BurgerConstructorElementProps> = memo(
-  ({ ingredient, index, totalItems }) => {
-    const handleMoveDown = () => {};
+  ({ ingredient, index, totalItems, handleClose }) => {
+    const handleMoveDown = () => {
+      console.log('Move down:', index);
+    };
 
-    const handleMoveUp = () => {};
+    const handleMoveUp = () => {
+      console.log('Move up:', index);
+    };
 
-    const handleClose = () => {};
+    // Создаем функцию по умолчанию если handleClose не передан
+    const onClose =
+      handleClose ||
+      (() => {
+        console.log('Default close handler for index:', index);
+      });
 
     return (
       <BurgerConstructorElementUI
@@ -17,7 +26,7 @@ export const BurgerConstructorElement: FC<BurgerConstructorElementProps> = memo(
         totalItems={totalItems}
         handleMoveUp={handleMoveUp}
         handleMoveDown={handleMoveDown}
-        handleClose={handleClose}
+        handleClose={onClose} // Всегда передаем функцию
       />
     );
   }

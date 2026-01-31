@@ -21,23 +21,14 @@ import { checkUserAuth } from '../../services/slices/userSlice';
 import { Preloader } from '@ui';
 import styles from './app.module.css';
 import '../../index.css';
-
-// Обновленный тип для background state
-type BackgroundState = {
-  background?: {
-    pathname: string;
-    search: string;
-    hash: string;
-  };
-  isProfileOrder?: boolean;
-};
+import { TLocationState } from '@utils-types'; // Импортируем тип
 
 const App: FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
   const location = useLocation();
-  const state = location.state as BackgroundState | null;
+  const state = location.state as TLocationState | null; // Используем импортированный тип
   const background = state?.background;
 
   console.log('🔴 App - location state:', state);

@@ -1,5 +1,5 @@
 import { RefObject } from 'react';
-import { TIngredient } from '@utils-types';
+import { TIngredient, TLocationState } from '@utils-types';
 
 export type TIngredientsCategoryProps = {
   title: string;
@@ -7,5 +7,5 @@ export type TIngredientsCategoryProps = {
   ingredients: TIngredient[];
   getIngredientCount?: (ingredient: TIngredient) => number;
   handleAddIngredient?: (ingredient: TIngredient) => void;
-  locationState?: any;
+  locationState?: TLocationState;
 };

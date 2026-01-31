@@ -14,13 +14,6 @@ export const OrderCardUI: FC<OrderCardUIProps> = memo(
   ({ orderInfo, maxIngredients, locationState, onClick }) => {
     const location = useLocation();
 
-    console.log(
-      '🟣 OrderCardUI rendering order:',
-      orderInfo.number,
-      'onClick:',
-      !!onClick
-    );
-
     const content = (
       <>
         <div className={styles.order_info}>
@@ -42,6 +35,11 @@ export const OrderCardUI: FC<OrderCardUIProps> = memo(
             {orderInfo.ingredientsToShow.map((ingredient, index) => {
               let zIndex = maxIngredients - index;
               let right = 20 * index;
+
+              // Ключевое исправление: проверяем, нужно ли показывать счетчик
+              const isLastItem = index === maxIngredients - 1;
+              const shouldShowRemains = orderInfo.remains > 0 && isLastItem;
+
               return (
                 <li
                   className={styles.img_wrap}
@@ -49,23 +47,21 @@ export const OrderCardUI: FC<OrderCardUIProps> = memo(
                   key={index}
                 >
                   <img
-                    style={{
-                      opacity:
-                        orderInfo.remains && maxIngredients === index + 1
-                          ? '0.5'
-                          : '1'
-                    }}
                     className={styles.img}
                     src={ingredient.image_mobile}
                     alt={ingredient.name}
+                    style={{
+                      opacity: shouldShowRemains ? '0.5' : '1'
+                    }}
                   />
-                  {maxIngredients === index + 1 ? (
+                  {/* Только если есть скрытые ингредиенты, показываем счетчик */}
+                  {shouldShowRemains && (
                     <span
                       className={`text text_type_digits-default ${styles.remains}`}
                     >
-                      {orderInfo.remains > 0 ? `+${orderInfo.remains}` : null}
+                      +{orderInfo.remains}
                     </span>
-                  ) : null}
+                  )}
                 </li>
               );
             })}
@@ -82,7 +78,6 @@ export const OrderCardUI: FC<OrderCardUIProps> = memo(
       </>
     );
 
-    // Если есть onClick, используем div с обработчиком
     if (onClick) {
       return (
         <div
@@ -95,12 +90,11 @@ export const OrderCardUI: FC<OrderCardUIProps> = memo(
       );
     }
 
-    // Иначе используем Link для навигации
     return (
       <Link
         to={orderInfo.number.toString()}
         relative='path'
-        state={locationState} // Передаем locationState который теперь содержит простой объект
+        state={locationState}
         className={`p-6 mb-4 mr-2 ${styles.order}`}
       >
         {content}

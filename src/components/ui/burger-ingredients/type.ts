@@ -1,5 +1,5 @@
 import { RefObject } from 'react';
-import { TIngredient } from '@utils-types';
+import { TIngredient, TLocationState } from '@utils-types';
 
 export type BurgerIngredientsUIProps = {
   currentTab: string;
@@ -13,7 +13,7 @@ export type BurgerIngredientsUIProps = {
   mainsRef: (node?: Element | null) => void;
   saucesRef: (node?: Element | null) => void;
   onTabClick: (tab: string) => void;
-  getIngredientCount?: (ingredient: TIngredient) => number; // Добавляем
-  handleAddIngredient?: (ingredient: TIngredient) => void; // Добавляем
-  locationState?: any; // Добавляем
+  getIngredientCount?: (ingredient: TIngredient) => number;
+  handleAddIngredient?: (ingredient: TIngredient) => void;
+  locationState?: TLocationState;
 };
