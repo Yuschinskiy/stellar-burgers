@@ -18,11 +18,13 @@ export const OrderInfo: FC = () => {
   const orders = isProfilePage ? userOrders : feedOrders;
   const orderData = orders.find((order) => order.number === Number(number));
 
-  if (!orderData || !ingredients.length) {
-    return background ? null : <Preloader />;
-  }
-
+  // useMemo вызывается ВСЕГДА, независимо от наличия данных
   const orderInfo = useMemo(() => {
+    // Если данных нет, возвращаем null
+    if (!orderData || !ingredients.length) {
+      return null;
+    }
+
     const date = new Date(orderData.createdAt);
 
     type TIngredientsWithCount = {
@@ -61,6 +63,15 @@ export const OrderInfo: FC = () => {
       total
     };
   }, [orderData, ingredients]);
+
+  // Проверка после всех хуков
+  if (background && (!orderData || !ingredients.length)) {
+    return null;
+  }
+
+  if (!orderInfo) {
+    return <Preloader />;
+  }
 
   return <OrderInfoUI orderInfo={orderInfo} />;
 };

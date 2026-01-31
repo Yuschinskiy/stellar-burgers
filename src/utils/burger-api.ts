@@ -94,32 +94,43 @@ export const getFeedsApi = () =>
       return Promise.reject(data);
     });
 
-// Вспомогательная функция для получения правильного заголовка авторизации
 const getAuthHeader = (): string => {
-  const token = getCookie('accessToken');
+  let token: string | null | undefined;
+
+  // Сначала пробуем получить токен из cookie
+  token = getCookie('accessToken');
+
+  // Если в cookie нет, пробуем из localStorage
   if (!token) {
-    console.log('🔴 [getAuthHeader] No token found in cookies');
+    token = localStorage.getItem('accessToken');
+    console.log(
+      '🟢 [getAuthHeader] Token from localStorage:',
+      token ? 'found' : 'not found'
+    );
+  } else {
+    console.log('🟢 [getAuthHeader] Token from cookie');
+  }
+
+  // Преобразуем null/undefined в пустую строку
+  const tokenString = token || '';
+
+  if (!tokenString) {
+    console.log('🔴 [getAuthHeader] No token found anywhere');
     return '';
   }
 
-  // Логируем полученный токен для отладки
-  console.log('🟢 [getAuthHeader] Raw token from cookie:', token);
-
-  // Очищаем токен от возможных дублирований "Bearer "
-  let cleanedToken = token.trim();
+  let cleanedToken = tokenString.trim();
 
   // Убираем все вхождения "Bearer " с начала строки
   while (cleanedToken.startsWith('Bearer ')) {
-    cleanedToken = cleanedToken.substring(7).trim(); // Удаляем "Bearer "
+    cleanedToken = cleanedToken.substring(7).trim();
   }
 
-  // Проверяем, что токен не пустой после очистки
   if (!cleanedToken) {
     console.error('🔴 [getAuthHeader] Token is empty after cleaning');
     return '';
   }
 
-  // Возвращаем токен с одним "Bearer " префиксом
   const result = `Bearer ${cleanedToken}`;
   console.log(
     '🟢 [getAuthHeader] Final auth header:',
@@ -203,6 +214,7 @@ export const registerUserApi = (data: TRegisterData) =>
     .then((res) => checkResponse<TAuthResponse>(res))
     .then((data) => {
       if (data?.success) {
+        console.log('🟢 [registerUserApi] Response received');
         // Сохраняем токены
         localStorage.setItem('accessToken', data.accessToken);
         localStorage.setItem('refreshToken', data.refreshToken);
@@ -228,10 +240,20 @@ export const loginUserApi = (data: TLoginData) =>
     .then((res) => checkResponse<TAuthResponse>(res))
     .then((data) => {
       if (data?.success) {
+        console.log('🟢 [loginUserApi] Login successful');
+        console.log(
+          '🟢 [loginUserApi] Access token length:',
+          data.accessToken.length
+        );
+        console.log('🟢 [loginUserApi] User:', data.user);
+
         // Сохраняем токены
         localStorage.setItem('accessToken', data.accessToken);
         localStorage.setItem('refreshToken', data.refreshToken);
-        setCookie('accessToken', data.accessToken);
+
+        // Устанавливаем cookie с правильными параметрами
+        setCookie('accessToken', data.accessToken, { expires: 20 * 60 }); // 20 минут
+
         console.log(
           '🟢 [loginUserApi] Tokens saved to localStorage and cookies'
         );
@@ -271,13 +293,15 @@ export const resetPasswordApi = (data: { password: string; token: string }) =>
 type TUserResponse = TServerResponse<{ user: TUser }>;
 
 export const getUserApi = () => {
+  const authHeader = getAuthHeader();
   console.log(
     '🟢 [getUserApi] Getting user with auth header:',
-    getAuthHeader().substring(0, 50) + '...'
+    authHeader.substring(0, 50) + '...'
   );
+
   return fetchWithRefresh<TUserResponse>(`${URL}/auth/user`, {
     headers: {
-      authorization: getAuthHeader()
+      authorization: authHeader
     } as HeadersInit
   });
 };

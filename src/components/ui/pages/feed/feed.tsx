@@ -1,13 +1,23 @@
 import { FC, memo } from 'react';
-
 import styles from './feed.module.css';
-
 import { FeedUIProps } from './type';
 import { OrdersList, FeedInfo } from '@components';
 import { RefreshButton } from '@zlden/react-developer-burger-ui-components';
 
 export const FeedUI: FC<FeedUIProps> = memo(({ orders, handleGetFeeds }) => {
-  console.log('FeedUI rendering with orders:', orders.length);
+  console.log('🔄 FeedUI rendering with orders:', orders.length);
+  console.log('🔄 handleGetFeeds function exists:', !!handleGetFeeds);
+
+  const handleRefreshClick = () => {
+    console.log('🔄 Refresh button clicked!');
+    console.log('🔄 handleGetFeeds:', handleGetFeeds);
+    if (handleGetFeeds) {
+      console.log('🔄 Calling handleGetFeeds...');
+      handleGetFeeds();
+    } else {
+      console.error('🔄 handleGetFeeds is undefined!');
+    }
+  };
 
   if (orders.length === 0) {
     return (
@@ -18,7 +28,7 @@ export const FeedUI: FC<FeedUIProps> = memo(({ orders, handleGetFeeds }) => {
           </h1>
           <RefreshButton
             text='Обновить'
-            onClick={handleGetFeeds}
+            onClick={handleRefreshClick} // Используем обертку
             extraClass={'ml-30'}
           />
         </div>
@@ -39,7 +49,7 @@ export const FeedUI: FC<FeedUIProps> = memo(({ orders, handleGetFeeds }) => {
         </h1>
         <RefreshButton
           text='Обновить'
-          onClick={handleGetFeeds}
+          onClick={handleRefreshClick} // Используем обертку
           extraClass={'ml-30'}
         />
       </div>

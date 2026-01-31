@@ -2,7 +2,7 @@ import { FC, useEffect } from 'react';
 import { Preloader } from '@ui';
 import { FeedUI } from '@ui-pages';
 import { useAppDispatch, useAppSelector } from '../../services/hooks';
-import { fetchFeeds } from '../../services/slices/feedSlice'; // Используем HTTP
+import { fetchFeeds } from '../../services/slices/feedSlice';
 
 export const Feed: FC = () => {
   const dispatch = useAppDispatch();
@@ -18,14 +18,12 @@ export const Feed: FC = () => {
     hasError
   });
 
-  // Загружаем данные через HTTP
   useEffect(() => {
     console.log('🟠 Feed: Fetching feeds via HTTP...');
     dispatch(fetchFeeds());
 
-    // Обновляем каждые 30 секунд
     const interval = setInterval(() => {
-      console.log('🟠 Feed: Refreshing feeds...');
+      console.log('🟠 Feed: Auto-refreshing feeds...');
       dispatch(fetchFeeds());
     }, 30000);
 
@@ -35,7 +33,7 @@ export const Feed: FC = () => {
   }, [dispatch]);
 
   const handleGetFeeds = () => {
-    console.log('Manual refresh requested');
+    console.log('🟢 MANUAL REFRESH: Manual refresh requested');
     dispatch(fetchFeeds());
   };
 
@@ -53,6 +51,7 @@ export const Feed: FC = () => {
   }
 
   console.log('🟠 Feed: rendering with', orders.length, 'orders');
+  console.log('🟠 Passing handleGetFeeds to FeedUI:', !!handleGetFeeds);
 
   return <FeedUI orders={orders} handleGetFeeds={handleGetFeeds} />;
 };
