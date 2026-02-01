@@ -21,19 +21,10 @@ export const Feed: FC = () => {
   useEffect(() => {
     console.log('🟠 Feed: Fetching feeds via HTTP...');
     dispatch(fetchFeeds());
-
-    const interval = setInterval(() => {
-      console.log('🟠 Feed: Auto-refreshing feeds...');
-      dispatch(fetchFeeds());
-    }, 30000);
-
-    return () => {
-      clearInterval(interval);
-    };
   }, [dispatch]);
 
-  const handleGetFeeds = () => {
-    console.log('🟢 MANUAL REFRESH: Manual refresh requested');
+  const handleRefresh = () => {
+    console.log('🔄 MANUAL REFRESH: Manual refresh requested');
     dispatch(fetchFeeds());
   };
 
@@ -45,13 +36,13 @@ export const Feed: FC = () => {
     return (
       <div style={{ textAlign: 'center', padding: '40px' }}>
         <h2>Ошибка загрузки ленты заказов</h2>
-        <button onClick={handleGetFeeds}>Попробовать снова</button>
+        <button onClick={handleRefresh}>Попробовать снова</button>
       </div>
     );
   }
 
   console.log('🟠 Feed: rendering with', orders.length, 'orders');
-  console.log('🟠 Passing handleGetFeeds to FeedUI:', !!handleGetFeeds);
+  console.log('🟠 Passing handleRefresh to FeedUI:', !!handleRefresh);
 
-  return <FeedUI orders={orders} handleGetFeeds={handleGetFeeds} />;
+  return <FeedUI orders={orders} handleGetFeeds={handleRefresh} />;
 };
