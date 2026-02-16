@@ -53,3 +53,4 @@ export const {
   clearConstructor
 } = burgerConstructorSlice.actions;
 export const burgerConstructorReducer = burgerConstructorSlice.reducer;
+export type { IBurgerConstructorState };

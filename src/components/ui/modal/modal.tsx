@@ -12,7 +12,7 @@ export const ModalUI: FC<TModalUIProps> = memo(
 
     return (
       <>
-        <div className={styles.modal}>
+        <div className={styles.modal} data-cy='modal'>
           <div className={styles.header}>
             <h3 className={`${styles.title} text text_type_main-large`}>
               {title}
@@ -24,6 +24,7 @@ export const ModalUI: FC<TModalUIProps> = memo(
                 console.log('🟢 Close button clicked');
                 onClose();
               }}
+              data-cy='modal-close'
             >
               <CloseIcon type='primary' />
             </button>
@@ -35,6 +36,7 @@ export const ModalUI: FC<TModalUIProps> = memo(
             console.log('🟢 Overlay clicked');
             onClose();
           }}
+          data-cy='modal-overlay'
         />
       </>
     );
