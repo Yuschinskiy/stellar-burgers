@@ -23,8 +23,14 @@ describe('Конструктор бургера', () => {
         .contains('Добавить')
         .click();
 
-      cy.get('[data-cy=constructor-bun-top]').should('contain', 'Флюоресцентная булка');
-      cy.get('[data-cy=constructor-bun-bottom]').should('contain', 'Флюоресцентная булка');
+      cy.get('[data-cy=constructor-bun-top]').should(
+        'contain',
+        'Флюоресцентная булка'
+      );
+      cy.get('[data-cy=constructor-bun-bottom]').should(
+        'contain',
+        'Флюоресцентная булка'
+      );
     });
 
     it('должен добавлять начинку в конструктор', () => {
@@ -35,7 +41,10 @@ describe('Конструктор бургера', () => {
         .contains('Добавить')
         .click();
 
-      cy.get('[data-cy=constructor-ingredient]').should('contain', 'Мясо бессмертных');
+      cy.get('[data-cy=constructor-ingredient]').should(
+        'contain',
+        'Мясо бессмертных'
+      );
     });
 
     it('должен добавлять несколько ингредиентов разных типов', () => {
@@ -66,10 +75,33 @@ describe('Конструктор бургера', () => {
   });
 
   describe('Модальные окна ингредиентов', () => {
-    it('должен открывать модальное окно при клике на ингредиент', () => {
-      cy.get('[data-cy=ingredient-link]').first().click();
+    it('должен открывать модальное окно с правильными данными ингредиента', () => {
+      // Кликаем на конкретный ингредиент
+      cy.get('[data-cy=ingredient-link]')
+        .contains('Флюоресцентная булка')
+        .click();
+
+      // Проверяем не только наличие, но и содержимое
       cy.get('[data-cy=modal]').should('be.visible');
-      cy.get('[data-cy=modal]').contains('Детали ингредиента');
+      cy.get('[data-cy=modal]')
+        .contains('Детали ингредиента')
+        .should('be.visible');
+
+      // Проверяем конкретные данные ингредиента
+      cy.get('[data-cy=modal]').within(() => {
+        cy.contains('Флюоресцентная булка').should('be.visible');
+        cy.contains('988').should('be.visible'); // цена
+        cy.contains('Калории,ккал')
+          .siblings()
+          .contains('643')
+          .should('be.visible');
+        cy.contains('Белки,г').siblings().contains('44').should('be.visible');
+        cy.contains('Жиры,г').siblings().contains('26').should('be.visible');
+        cy.contains('Углеводы,г')
+          .siblings()
+          .contains('85')
+          .should('be.visible');
+      });
     });
 
     it('должен закрывать модальное окно по клику на крестик', () => {
@@ -77,15 +109,18 @@ describe('Конструктор бургера', () => {
       cy.get('[data-cy=modal]').should('be.visible');
       cy.get('[data-cy=modal-close]').click();
       cy.get('[data-cy=modal]').should('not.exist');
+
+      // Проверяем, что URL вернулся к исходному
+      cy.url().should('eq', 'http://localhost:4000/');
     });
 
     it('должен закрывать модальное окно по клику на оверлей', () => {
       cy.get('[data-cy=ingredient-link]').first().click();
       cy.get('[data-cy=modal]').should('be.visible');
-      
-      // Клик на оверлей (если есть)
+
+      // Клик на оверлей
       cy.get('body').click(100, 100); // клик в левый верхний угол страницы
-      
+
       cy.get('[data-cy=modal]').should('not.exist');
     });
   });
@@ -96,6 +131,11 @@ describe('Конструктор бургера', () => {
       cy.reload();
       cy.wait('@getIngredients');
       cy.wait('@getUser');
+    });
+
+    afterEach(() => {
+      // Очищаем токены после каждого теста
+      cy.clearAuthTokens();
     });
 
     it('должен создавать заказ с собранным бургером', () => {

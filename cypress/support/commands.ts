@@ -9,6 +9,13 @@ Cypress.Commands.add('setAuthTokens', () => {
   });
 });
 
+// НОВАЯ КОМАНДА: очистка токенов
+Cypress.Commands.add('clearAuthTokens', () => {
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+  cy.clearCookie('accessToken');
+});
+
 // Команда для перехвата запросов к API
 Cypress.Commands.add('interceptRequests', () => {
   cy.intercept('GET', '*/ingredients', { fixture: 'ingredients' }).as(
@@ -18,9 +25,8 @@ Cypress.Commands.add('interceptRequests', () => {
   cy.intercept('POST', '*/orders', { fixture: 'order' }).as('createOrder');
 });
 
-// ИСПРАВЛЕННАЯ КОМАНДА - ищем кнопку по тексту "Добавить"
+// Команда для добавления ингредиентов
 Cypress.Commands.add('addIngredientsToConstructor', () => {
-  // Добавляем булку
   cy.get('[data-cy=ingredient-item]')
     .contains('Флюоресцентная булка')
     .parents('[data-cy=ingredient-item]')
@@ -28,7 +34,6 @@ Cypress.Commands.add('addIngredientsToConstructor', () => {
     .contains('Добавить')
     .click();
   
-  // Добавляем начинку
   cy.get('[data-cy=ingredient-item]')
     .contains('Мясо бессмертных')
     .parents('[data-cy=ingredient-item]')
@@ -36,7 +41,6 @@ Cypress.Commands.add('addIngredientsToConstructor', () => {
     .contains('Добавить')
     .click();
   
-  // Добавляем соус
   cy.get('[data-cy=ingredient-item]')
     .contains('Соус Spicy-X')
     .parents('[data-cy=ingredient-item]')
@@ -45,11 +49,11 @@ Cypress.Commands.add('addIngredientsToConstructor', () => {
     .click();
 });
 
-// Объявляем типы для TypeScript
 declare global {
   namespace Cypress {
     interface Chainable {
       setAuthTokens(): Chainable<void>;
+      clearAuthTokens(): Chainable<void>; // НОВЫЙ ТИП
       interceptRequests(): Chainable<void>;
       addIngredientsToConstructor(): Chainable<void>;
     }
