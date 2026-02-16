@@ -11,7 +11,7 @@ import {
   TLoginData
 } from '../../utils/burger-api';
 import { TUser } from '../../utils/types';
-import { deleteCookie, getCookie } from '../../utils/cookie'; // Добавить импорт
+import { deleteCookie, getCookie } from '../../utils/cookie';
 
 interface IUserState {
   user: TUser | null;
@@ -63,7 +63,7 @@ export const registerUser = createAsyncThunk(
   }
 );
 
-// Выход - ИСПРАВЛЕННЫЙ ВАРИАНТ
+// Выход
 export const logoutUser = createAsyncThunk('user/logout', async () => {
   try {
     // Пробуем отправить запрос на выход
@@ -174,7 +174,7 @@ const userSlice = createSlice({
         state.isLoading = false;
         state.hasError = true;
       })
-      // ВЫХОД - ИСПРАВЛЕННЫЙ
+      // ВЫХОД
       .addCase(logoutUser.pending, (state) => {
         state.isLoading = true;
       })
@@ -216,3 +216,6 @@ const userSlice = createSlice({
 export const { setAuthChecked, clearError, clearForgotPassword, forceLogout } =
   userSlice.actions;
 export const userReducer = userSlice.reducer;
+
+// ДОБАВЛЯЕМ ЭКСПОРТ ИНТЕРФЕЙСА
+export type { IUserState };

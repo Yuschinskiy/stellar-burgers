@@ -12,6 +12,7 @@ import {
   forgotPassword,
   resetPassword
 } from '../userSlice';
+import type { IUserState } from '../userSlice';
 import { TUser } from '../../../utils/types';
 
 // Мокаем API
