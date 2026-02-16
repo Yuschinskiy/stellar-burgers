@@ -11,37 +11,38 @@ Cypress.Commands.add('setAuthTokens', () => {
 
 // Команда для перехвата запросов к API
 Cypress.Commands.add('interceptRequests', () => {
-  // Перехват запроса ингредиентов
   cy.intercept('GET', '*/ingredients', { fixture: 'ingredients' }).as(
     'getIngredients'
   );
-
-  // Перехват запроса пользователя
   cy.intercept('GET', '*/auth/user', { fixture: 'user' }).as('getUser');
-
-  // Перехват запроса создания заказа
   cy.intercept('POST', '*/orders', { fixture: 'order' }).as('createOrder');
 });
 
-// Команда для добавления ингредиентов в конструктор
+// ИСПРАВЛЕННАЯ КОМАНДА - ищем кнопку по тексту "Добавить"
 Cypress.Commands.add('addIngredientsToConstructor', () => {
   // Добавляем булку
-  cy.get('[data-cy=ingredient-item]').contains('Флюоресцентная булка').click();
-  cy.get('[data-cy=modal]').within(() => {
-    cy.contains('Добавить').click();
-  });
-
+  cy.get('[data-cy=ingredient-item]')
+    .contains('Флюоресцентная булка')
+    .parents('[data-cy=ingredient-item]')
+    .find('button')
+    .contains('Добавить')
+    .click();
+  
   // Добавляем начинку
-  cy.get('[data-cy=ingredient-item]').contains('Мясо бессмертных').click();
-  cy.get('[data-cy=modal]').within(() => {
-    cy.contains('Добавить').click();
-  });
-
+  cy.get('[data-cy=ingredient-item]')
+    .contains('Мясо бессмертных')
+    .parents('[data-cy=ingredient-item]')
+    .find('button')
+    .contains('Добавить')
+    .click();
+  
   // Добавляем соус
-  cy.get('[data-cy=ingredient-item]').contains('Соус Spicy-X').click();
-  cy.get('[data-cy=modal]').within(() => {
-    cy.contains('Добавить').click();
-  });
+  cy.get('[data-cy=ingredient-item]')
+    .contains('Соус Spicy-X')
+    .parents('[data-cy=ingredient-item]')
+    .find('button')
+    .contains('Добавить')
+    .click();
 });
 
 // Объявляем типы для TypeScript
