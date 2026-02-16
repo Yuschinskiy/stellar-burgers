@@ -8,11 +8,37 @@ import { feedReducer } from '../feedSlice';
 import { userOrdersReducer } from '../userOrdersSlice';
 
 describe('rootReducer', () => {
+  // ТЕСТ 1: проверка начального состояния
+  it('должен возвращать корректное начальное состояние', () => {
+    const initAction = { type: '@@INIT' };
+    const state = store.getState();
+
+    expect(state).toEqual({
+      ingredients: ingredientsReducer(undefined, initAction),
+      constructorBurger: burgerConstructorReducer(undefined, initAction),
+      order: orderReducer(undefined, initAction),
+      user: userReducer(undefined, initAction),
+      feed: feedReducer(undefined, initAction),
+      userOrders: userOrdersReducer(undefined, initAction)
+    });
+  });
+
+  // ТЕСТ 2: проверка что состояние не мутируется при неизвестном экшене
+  it('должен возвращать то же состояние при неизвестном экшене', () => {
+    const prevState = store.getState();
+    
+    // Диспатчим неизвестный экшен
+    store.dispatch({ type: 'UNKNOWN_ACTION' });
+    const newState = store.getState();
+    
+    // Состояние должно быть тем же (не изменилось)
+    expect(newState).toEqual(prevState);
+  });
+
+  // ТЕСТ 3: проверка инициализации всех редьюсеров
   it('should initialize all reducers correctly', () => {
-    // Получаем состояние store
     const state = store.getState() as RootState;
 
-    // Проверяем, что все редьюсеры инициализированы
     expect(state).toHaveProperty('ingredients');
     expect(state).toHaveProperty('constructorBurger');
     expect(state).toHaveProperty('order');
@@ -20,7 +46,6 @@ describe('rootReducer', () => {
     expect(state).toHaveProperty('feed');
     expect(state).toHaveProperty('userOrders');
 
-    // Проверяем начальные состояния
     expect(state.ingredients).toEqual({
       ingredients: [],
       isLoading: false,
@@ -31,28 +56,12 @@ describe('rootReducer', () => {
       bun: null,
       ingredients: []
     });
-
-    expect(state.order).toBeDefined();
-    expect(state.user).toBeDefined();
-    expect(state.feed).toBeDefined();
-    expect(state.userOrders).toBeDefined();
   });
 
+  // ТЕСТ 4: проверка комбинирования редьюсеров
   it('should combine reducers correctly', () => {
-    // Проверяем, что редьюсеры действительно объединены
-    const reducers = {
-      ingredients: ingredientsReducer,
-      constructorBurger: burgerConstructorReducer,
-      order: orderReducer,
-      user: userReducer,
-      feed: feedReducer,
-      userOrders: userOrdersReducer
-    };
-
-    // Создаем тестовый action
     const action = { type: 'unknown' };
-
-    // Получаем состояние от каждого редьюсера отдельно
+    
     const combinedState = {
       ingredients: ingredientsReducer(undefined, action),
       constructorBurger: burgerConstructorReducer(undefined, action),
@@ -62,7 +71,6 @@ describe('rootReducer', () => {
       userOrders: userOrdersReducer(undefined, action)
     };
 
-    // Сравниваем с состоянием из store
     expect(store.getState()).toMatchObject(combinedState);
   });
 });
